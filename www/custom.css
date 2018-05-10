@@ -1,0 +1,24 @@
+.sidebar-menu{
+	font-size: 20px;
+}
+
+.submenu{
+	font-size: 18px;
+}
+
+.disAdj{
+	height: 5px;
+}
+
+.disAdj-border{
+	height: 20px;
+}
+
+.user-panel{
+	font-size: 15px;
+}
+
+.plot{
+	position: absolute;
+	top: 150px;
+}

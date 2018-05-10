@@ -1,0 +1,12 @@
+name: marketSVM
+title: marketSVM
+username:
+account: rwandering
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 339135
+bundleId: 1361723
+url: https://rwandering.shinyapps.io/marketSVM/
+when: 1525755614.01876
+asMultiple: FALSE
+asStatic: FALSE

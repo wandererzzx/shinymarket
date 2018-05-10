@@ -1,0 +1,12 @@
+name: spdforecast
+title: SPDForecast
+username:
+account: rwandering
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 339379
+bundleId: 1362504
+url: https://rwandering.shinyapps.io/spdforecast/
+when: 1525788799.18037
+asMultiple: FALSE
+asStatic: FALSE
