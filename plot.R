@@ -1,9 +1,5 @@
-################### READ RANDOM FOREST ############
-# rf.data = as.data.frame(read.csv(file="/Users/arrowlittle/Desktop/stock/rf_modelresult_t100.csv"))[,-1]
-# svm.data = as.data.frame(read.csv(file="/Users/arrowlittle/Desktop/stock/modelresult.csv"))[,-1]
-# rf.data = rf.data[101:125,-1]
-# svm.data = svm.data[101:125,-1]
 
+##### This file contains functions that use ggplot to create our result graph on the website
 ################### VISUALIZATION #################
 ### svm plot ###
 svm_plot = function(data){
@@ -14,7 +10,7 @@ svm_plot = function(data){
     geom_errorbar(aes(ymax=max, ymin=min), position="dodge", width=0.7,size=.15)
   return (svm.plot)
 }
-# svm_plot(svm.data)
+
 
 ### rf plot ###
 rf_plot = function(data){
@@ -25,7 +21,7 @@ rf_plot = function(data){
     geom_errorbar(aes(ymax=max, ymin=min), position="dodge", width=0.7,size=.15)
   return(rf.plot)
 }
-# rf_plot(rf.data)
+
 
 ### combined plot ###
 diff_plot = function(data.svm,data.rf){

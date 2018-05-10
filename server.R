@@ -3,6 +3,8 @@ library(shinydashboard)
 library(DT)
 library(quantmod)
 
+
+##### loading plot scripts and define gloabl variables for interaction #####
 source('plot.R')
 
 features = c("Open","High","Low","Close","Volume","Adjusted")
@@ -75,9 +77,7 @@ server <- function(input,output){
   
   svmMN <-reactive({
     data.svm.mn = svm_result[which(svm_result$m%in%input$num_m),-1]
-    # p = plot_ly(x=~as.factor(data.svm.m$n1),y=~data.svm.m$mean,color=~as.factor(data.svm.m$n2))
     return(ggplotly(svm_plot(data.svm.mn)))
-    # return(p)
   })
   
   svmAM <-reactive({
@@ -105,9 +105,7 @@ server <- function(input,output){
   
   rfMN <-reactive({
     data.rf.mn = rf_result[which(rf_result$m%in%input$num_m_rf),-1]
-    # p = plot_ly(x=~as.factor(data.svm.m$n1),y=~data.svm.m$mean,color=~as.factor(data.svm.m$n2))
     return(ggplotly(rf_plot(data.rf.mn)))
-    # return(p)
   })
   
   
@@ -131,7 +129,7 @@ server <- function(input,output){
     return(p)
   })
   
-  
+  ##### original data display #####
   output$table <- DT::renderDataTable(DT::datatable({
     stockData()[,c("Date",input$feature)]
   }))
@@ -139,11 +137,8 @@ server <- function(input,output){
   output$stockPlot <- renderPlotly({
     plotElements()
   })
-  output$debug_out <- renderPrint({
 
-  })
-
-  
+  ##### processd data display #####
   output$ip_vis <- renderPlotly({
     plot_ly(x=~ip,type = 'histogram',alpha = 0.6, color = "#edb863") %>% layout(title='n1=5',
                                                             yaxis = list(title = "Hist"),
@@ -168,6 +163,7 @@ server <- function(input,output){
                                                              xaxis = list(title = "momentum"))
   })
   
+  ##### result display #####
   output$svm_result <- DT::renderDataTable(DT::datatable({
     svmData()
   }))

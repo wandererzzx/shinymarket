@@ -44,7 +44,7 @@ ROC1 = 'After comparing all the SVM models,we pick out the combination which rea
 ROC2 = 'According to the result, we can observe even the best model can only beat random guessing to some extent. 
 This, however, becomes one support for the <a href = "https://en.wikipedia.org/wiki/Efficient-market_hypothesis">Efficient Market Hypothesis (EMH)</a>.'
 
-##### tab1 #####
+##### Introduction tab #####
 originalData <- fluidPage(
   titlePanel(' Data Display'),
   fluidRow(
@@ -69,7 +69,7 @@ originalData <- fluidPage(
   )
 )
 
-##### tab2 #####
+##### processd data UI #####
 processedData <- fluidPage(
   titlePanel("Feature Extraction"),
   withMathJax(),
@@ -130,7 +130,7 @@ processedData <- fluidPage(
   
 )
 
-##### tab3 #####
+##### svm result tab UI #####
 svmresult<-fluidPage(
   titlePanel('SVM Test Accuracy'),
   fluidRow(
@@ -160,7 +160,7 @@ svmresult<-fluidPage(
 
 
 
-##### tab4 #####
+##### randomforest result UI #####
 rfresult<-fluidPage(
   titlePanel('RandomForest Test Accuracy'),
   fluidRow(
@@ -186,7 +186,7 @@ rfresult<-fluidPage(
   )
 )
 
-##### tab5 #####
+##### analysis UI #####
 analysis <- fluidPage(
   titlePanel('Results Comparison'),
   fluidRow(selectizeInput('num_m_an',label = h4('Select m'),choices = num_m,selected = 90)),
@@ -200,6 +200,7 @@ analysis <- fluidPage(
   )
 )
 
+##### ROC UI #####
 roc <- fluidPage(
   titlePanel('ROC of SVM'),
   fluidRow(
@@ -247,7 +248,7 @@ introduction <- fluidPage(
 )
 
 
-##### UI #####
+##### combine all the UI #####
 ui <- dashboardPage(
   dashboardHeader(title = 'SPDForecast'),
   dashboardSidebar(
