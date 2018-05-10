@@ -1,8 +1,14 @@
-library(quantmod)
+##### this file is used for feature extraction and model training and testing #####
+##### we also implement 10-fold cross validation and draw the roc of our best tested model #####
 library(xts)
+library(quantmod)
 library(e1071)
 library(TTR)
 library(plyr)
+library(ggplot2)
+library(ddalpha)
+library(caret)
+library(pROC)
 
 ################### COLLECT DATA ####################
 stockData <- new.env()
@@ -38,7 +44,7 @@ add_features = function(company, cname){
   
   ### add labels ###
   for (j in forecast){
-    company = merge(company, ifelse(lag(company[,cp], -j)>company[,cp], 1,-1))
+    company = merge(company, ifelse(lag(company[,cp], -j)>company[,cp], 1, -1))
   }
   
   ### change headers ###
@@ -69,7 +75,6 @@ add_features_to_all = function(cname){
   com = add_features(com, cname)
   return (com)
 }
-
 
 ### add features to index ###
 NDXTset = add_features_to_all("NDXT") 
@@ -143,10 +148,6 @@ create_svm_model = function(n1, n2, m){
   return (list(svm.model, test))
 }
 
-# model.para = create_svm_model(270, 270, 270)
-# svm.model = model.para[[1]]
-# test = model.para[[2]]
-
 accuracy = function(model, data){
   pred = predict(model, data[,-5])
   cm = as.matrix(table(pred = pred, true = data[,5]))
@@ -193,10 +194,10 @@ i = 2
 for (m in forecast){
   for (n1 in days){
     for (n2 in days){
-       data = get(paste0('accuracy.', n1, '.', n2, '.pre', m), pos=stockData)
-       line = list(m, n1, n2, data[[1]], data[[2]], data[[3]], data[[4]])
-       l[[i]] = line
-       i = i+1
+      data = get(paste0('accuracy.', n1, '.', n2, '.pre', m), pos=stockData)
+      line = list(m, n1, n2, data[[1]], data[[2]], data[[3]], data[[4]])
+      l[[i]] = line
+      i = i+1
     }
   }
 }
@@ -214,4 +215,106 @@ for (m in forecast){
     }
   }
 }
+################### RANDOM FOREST ################
+set.seed(111)
+create_rf_model = function(n1, n2, m){
+  n = max(n1, n2)
+  result = create_train_test_data(n1, n2, n, m)
+  train = result[[1]]
+  test = result[[2]]
+  rf.model = randomForest(as.factor(Label)~., data = train, importance=T, ntree=100)
+  return (list(rf.model, test))
+}
+
+rf.model = get(paste0('rf.', n1, '.', n2, '.pre', m), pos=stockData)
+
+
+################### READ PREDICTION ACCURACY ############
+rf.data = as.data.frame(read.csv(file="/Users/arrowlittle/Desktop/stock/rf_modelresult_t100.csv"))[,-1]
+svm.data = as.data.frame(read.csv(file="/Users/arrowlittle/Desktop/stock/modelresult.csv"))[,-1]
+rf.data = rf.data[126:150,-1]
+svm.data = svm.data[126:150,-1]
+
+################### VISUALIZATION #################
+### svm plot ###
+svm_plot = function(data){
+  svm.plot = ggplot(data=svm.data, aes(fill=as.factor(n2), y=mean, x=as.factor(n1))) + 
+    geom_bar(position="dodge", stat="identity", width=0.7) + xlab("n1") + 
+    ggtitle("SVM Mean Prediction Accuracy") +
+    scale_fill_brewer(palette = "RdYlBu", name = "n2") + theme_bw() +
+    geom_errorbar(aes(ymax=max, ymin=min), position="dodge", width=0.7,size=.15)
+  return (svm.plot)
+}
+svm_plot(svm.data)
+
+### rf plot ###
+rf_plot = function(data){
+  rf.plot = ggplot(data=rf.data, aes(fill=as.factor(n2), y=mean, x=as.factor(n1))) + 
+    geom_bar(position="dodge", stat="identity", width=0.7) + xlab("n1") + 
+    ggtitle("Random Forest Mean Prediction Accuracy") +
+    scale_fill_brewer(palette = "PRGn", name = "n2") + theme_bw() +
+    geom_errorbar(aes(ymax=max, ymin=min), position="dodge", width=0.7,size=.15)
+  return(rf.plot)
+}
+rf_plot(rf.data)
+
+### combined plot ###
+svm_rf_plot = function(svm.data, rf.data){
+  svm.rf.data = cbind(svm.data[1:2], svm.data[3:6]-rf.data[3:6])
+  svm.rf.plot = ggplot() + 
+    geom_bar(data=svm.rf.data, aes(fill=as.factor(n2), y=mean, x=as.factor(n1)),
+             position="dodge", stat="identity", width=0.7) + xlab("n1") +
+    scale_fill_brewer(palette = "RdYlBu", name = "n2") + theme_bw() +
+    ggtitle("Prediction Accuracy Difference Between SVM and RF m=270")
+  return(svm.rf.plot)
+}
+svm_rf_plot(svm.data, rf.data)
+
+#################### CROSS VALIDATION ###############
+n1 = 20
+n2 = 5
+n = max(n1, n2)
+m = 90
+
+create_cv_data = function(n1, n2, n, m){
+  cv.set = NULL
+  ### index template ###
+  index.pre.set = get(paste0('NDXTset.',n1), pos=stockData)[(n+1):(2014-m)]
+  index.set = index.pre.set[, names(index.pre.set) %in% 
+                              c(paste0('Volatility.',n1), paste0('Momentum.',n1))]
+  #print(index.set)
+  colnames(index.set) = c("index.Volatility", "index.Momentum")
+  
+  ### stock template ###### create train/test dataset ###
+  for (i in 1:length(Stocks)){
+    com = Stocks[i]
+    stock.pre.set = get(paste0(com,'set.',n2), pos=stockData)[(n+1):(2014-m)]
+    stock.set = stock.pre.set[, names(stock.pre.set) %in%
+                                c(paste0('Volatility.',n2), paste0('Momentum.',n2),
+                                  paste0('Label.', m))]
+    colnames(stock.set) = c("stock.Volatility", "stock.Momentum", "Label")
+    temp.set = merge(index.set, stock.set)
+    cv.set  = rbind(cv.set, temp.set)
+  }
+  return (cv.set)
+}
+cv.data = as.data.frame(create_cv_data(20, 5, 20, 90))
+cv.data$Label = as.factor(cv.data$Label)
+levels(cv.data$Label) <- c("dec", "inc")
+
+write.csv(cv.data, file="/Users/arrowlittle/Desktop/stock/cvdata.csv")
+
+################### cv svm model ###
+train_control <- trainControl(method="cv", number=10, 
+                                summaryFunction=twoClassSummary, savePredictions = T,
+                                classProbs = T)
+grid <- expand.grid(sigma = c(0.25), C = c(1))
+cv.svm.model <- train(Label~., data=cv.data, tuneGrid = grid, metric = "ROC",
+                        trControl=train_control, method = "svmRadial")
+roc.curve =roc(as.numeric(cv.svm.model$pred$obs), as.numeric(cv.svm.model$pred$inc), direction="<")
+plot(roc.curve, col=586, lwd=3, main="ROC Curve", print.auc=TRUE)
+    
+
+
+
 
