@@ -1,3 +1,6 @@
+##### this file contains all the UI elements that will be rendered on the website #####
+##### the most important package is shiny, all the functions can be found in shiny official website ##### 
+
 library(shiny)
 library(shinydashboard)
 library(ggplot2)

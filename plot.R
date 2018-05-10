@@ -1,6 +1,6 @@
-
-##### This file contains functions that use ggplot to create our result graph on the website
+##### this file contains functions that use ggplot to create our result graph on the website
 ################### VISUALIZATION #################
+
 ### svm plot ###
 svm_plot = function(data){
   svm.plot = ggplot(data=data, aes(fill=as.factor(data$n2), y=mean, x=as.factor(data$n1))) + 

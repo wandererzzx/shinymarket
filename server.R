@@ -1,3 +1,6 @@
+##### this file contains method to render UI in the websites #####
+##### the most important package is shiny, all the functions can be found in shiny official website ##### 
+
 library(shiny)
 library(shinydashboard)
 library(DT)
